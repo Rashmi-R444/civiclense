@@ -1,0 +1,76 @@
+import { useParams, useNavigate } from 'react-router-dom';
+import { MapPin, Calendar, Building2, TrendingUp, Edit, Send } from 'lucide-react';
+import MobileLayout from '@/components/MobileLayout';
+import StatusBadge from '@/components/StatusBadge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { projects, formatCurrency } from '@/data/dummy';
+import { toast } from 'sonner';
+
+export default function AdminProjectDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const project = projects.find(p => p.id === id);
+
+  if (!project) return <MobileLayout title="Not Found" showBack role="admin"><p className="text-center text-muted-foreground py-8">Project not found</p></MobileLayout>;
+
+  const budgetPercent = Math.round((project.spent / project.budget) * 100);
+
+  return (
+    <MobileLayout title={project.name} showBack role="admin">
+      <div className="space-y-5">
+        <div className="bg-primary/5 rounded-2xl p-5 border">
+          <StatusBadge status={project.status} />
+          <h2 className="text-lg font-extrabold text-foreground mt-3 mb-1">{project.name}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">{project.description}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { icon: MapPin, label: 'Location', value: project.location },
+            { icon: Building2, label: 'Department', value: project.department },
+            { icon: Calendar, label: 'Start', value: project.startDate },
+            { icon: Calendar, label: 'End', value: project.endDate },
+          ].map(item => (
+            <div key={item.label} className="bg-card rounded-xl p-3 border card-shadow">
+              <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                <item.icon className="w-3 h-3" />
+                <span className="text-[10px] font-semibold uppercase">{item.label}</span>
+              </div>
+              <p className="text-xs font-bold text-foreground">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-card rounded-xl p-4 border card-shadow">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Progress</span>
+            <span className="ml-auto text-lg font-extrabold text-primary">{project.progress}%</span>
+          </div>
+          <Progress value={project.progress} className="h-3" />
+        </div>
+
+        <div className="bg-card rounded-xl p-4 border card-shadow">
+          <h3 className="text-sm font-bold text-foreground mb-3">Budget</h3>
+          <div className="flex gap-4 mb-3">
+            <div><p className="text-[10px] uppercase text-muted-foreground font-semibold">Total</p><p className="text-lg font-extrabold text-foreground">{formatCurrency(project.budget)}</p></div>
+            <div><p className="text-[10px] uppercase text-muted-foreground font-semibold">Spent</p><p className="text-lg font-extrabold text-warning">{formatCurrency(project.spent)}</p></div>
+          </div>
+          <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+            <div className={`h-full rounded-full ${budgetPercent > 90 ? 'bg-destructive' : 'bg-accent'}`} style={{ width: `${budgetPercent}%` }} />
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button className="flex-1 h-12 rounded-xl font-bold gap-2" onClick={() => toast('Edit form would open')}>
+            <Edit className="w-4 h-4" /> Edit Project
+          </Button>
+          <Button variant="outline" className="flex-1 h-12 rounded-xl font-bold gap-2" onClick={() => toast('Project published!')}>
+            <Send className="w-4 h-4" /> Publish
+          </Button>
+        </div>
+      </div>
+    </MobileLayout>
+  );
+}
