@@ -37,7 +37,7 @@ export default function AdminProjectTable() {
                 <StatusBadge status={p.status} />
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                <span>Budget: {formatCurrency(project.budget)}</span>
+                <span>Budget: {formatCurrency(p.budget)}</span>
                 <span>Progress: {p.progress}%</span>
               </div>
               <div className="flex gap-2">
