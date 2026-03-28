@@ -167,7 +167,7 @@ export const reports: CivicReport[] = [
 ];
 
 export const currentUser: CivicUser = {
-  id: 'u1', name: 'Arjun Reddy', email: 'arjun@example.com',
+  id: 'u1', name: 'Rashmi', email: 'rashmi@example.com',
   role: 'Verified Reporter', reputation: 850, reportsCount: 24,
   followingCount: 18, avatar: '👤', joinDate: '2025-03-15',
 };
