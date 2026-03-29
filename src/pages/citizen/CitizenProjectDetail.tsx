@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Building2, Bookmark, AlertTriangle, TrendingUp } from 'lucide-react';
+import FlagProjectButton from '@/components/FlagProjectDialog';
 import MobileLayout from '@/components/MobileLayout';
 import StatusBadge from '@/components/StatusBadge';
 import { Progress } from '@/components/ui/progress';
@@ -90,6 +91,7 @@ export default function CitizenProjectDetail() {
           <Button className="flex-1 h-12 rounded-xl font-bold gap-2" onClick={() => navigate(`/citizen/report/${project.id}`)}>
             <AlertTriangle className="w-4 h-4" /> Report Issue
           </Button>
+          <FlagProjectButton projectId={project.id} variant="mobile" />
         </div>
       </div>
     </MobileLayout>
