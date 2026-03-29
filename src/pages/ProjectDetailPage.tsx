@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { projects } from '@/data/mockData';
 import { useState } from 'react';
+import FlagProjectButton from '@/components/FlagProjectDialog';
 
 type DetailTab = 'overview' | 'updates' | 'documents' | 'map' | 'discussion';
 
@@ -61,7 +62,7 @@ export default function ProjectDetailPage() {
           <div className="flex items-center gap-2 p-3 border-b">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1"><Heart className="w-3 h-3" /> Follow</Button>
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1"><Share2 className="w-3 h-3" /> Share</Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1 text-destructive border-destructive/30"><Flag className="w-3 h-3" /> Flag</Button>
+            <FlagProjectButton projectId={project.id} variant="desktop" />
           </div>
         </div>
 

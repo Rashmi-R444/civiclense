@@ -90,6 +90,7 @@ export default function CitizenProjectDetail() {
           <Button className="flex-1 h-12 rounded-xl font-bold gap-2" onClick={() => navigate(`/citizen/report/${project.id}`)}>
             <AlertTriangle className="w-4 h-4" /> Report Issue
           </Button>
+          <FlagProjectButton projectId={project.id} variant="mobile" />
         </div>
       </div>
     </MobileLayout>
