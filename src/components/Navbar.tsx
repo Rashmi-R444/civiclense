@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, Menu, Moon, Sun, Bell, X, User, FileText, Trophy, LogOut } from 'lucide-react';
+import { Eye, Menu, Moon, Sun, X, User, FileText, Trophy, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,10 +69,6 @@ export default function Navbar() {
         <div className="flex items-center gap-2 ml-auto">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggle}>
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-destructive rounded-full" />
           </Button>
 
           {/* Auth: avatar dropdown or sign-in */}
