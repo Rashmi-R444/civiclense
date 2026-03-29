@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Building2, Flag, Share2, Heart, Users } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Building2, Share2, Heart, Users } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import AppLayout from '@/components/AppLayout';
 import StatusBadge from '@/components/StatusBadge';
