@@ -20,11 +20,11 @@ const navLinks = [
 ];
 
 function UserAvatar({ className = '' }: { className?: string }) {
-  const { user } = useAuth();
-  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+  const { profile } = useAuth();
+  const initials = profile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
   return (
     <Avatar className={`h-8 w-8 ${className}`}>
-      <AvatarImage src={user?.avatar} alt={user?.name} />
+      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ''} />
       <AvatarFallback className="text-xs bg-accent text-accent-foreground">{initials}</AvatarFallback>
     </Avatar>
   );
@@ -34,11 +34,11 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -71,7 +71,6 @@ export default function Navbar() {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
-          {/* Auth: avatar dropdown or sign-in */}
           <div className="hidden md:block">
             {isAuthenticated ? (
               <DropdownMenu>

@@ -14,7 +14,7 @@ const tabs = [
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated } = useAuth();
 
   const handleNavigate = (tab: typeof tabs[0]) => {
     if (tab.requiresAuth && !isAuthenticated) {
@@ -24,7 +24,7 @@ export default function BottomNav() {
     }
   };
 
-  const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+  const initials = profile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border md:hidden">
@@ -46,7 +46,7 @@ export default function BottomNav() {
                 </div>
               ) : isProfile && isAuthenticated ? (
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ''} />
                   <AvatarFallback className="text-[9px] bg-accent text-accent-foreground">{initials}</AvatarFallback>
                 </Avatar>
               ) : isProfile ? (
