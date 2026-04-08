@@ -1,59 +1,81 @@
-import { useState } from 'react';
-import { Camera, Download, Trash2, Link as LinkIcon, MapPin, Award, FileText, Heart, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Camera, Award, FileText, Heart, Settings, Save } from 'lucide-react';
 import AppLayout from '@/components/AppLayout';
-import CameraCapture from '@/components/CameraCapture';
 import { Button } from '@/components/ui/button';
-import { currentUser, reports, Evidence } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useProjects } from '@/hooks/useProjects';
+import { Navigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-type ProfileTab = 'reports' | 'following' | 'evidence' | 'settings';
+type ProfileTab = 'reports' | 'following' | 'settings';
 
 export default function ProfilePage() {
+  const { user, profile, isAuthenticated, loading, refreshProfile } = useAuth();
+  const { data: projects } = useProjects();
   const [tab, setTab] = useState<ProfileTab>('reports');
-  const [showCamera, setShowCamera] = useState(false);
-  const [evidenceList, setEvidenceList] = useState<Evidence[]>([
-    { id: 'e1', imageUrl: '', lat: 12.9716, lng: 77.5946, locationLabel: 'MG Road, Bengaluru', timestamp: '2026-03-20T10:30:00', linkedReportId: 'r1' },
-    { id: 'e2', imageUrl: '', lat: 12.9352, lng: 77.6710, locationLabel: 'Bellandur, Bengaluru', timestamp: '2026-03-18T14:15:00' },
-  ]);
+  const [fullName, setFullName] = useState('');
+  const [ward, setWard] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const userReports = reports.filter(r => r.reporter === currentUser.name);
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setWard(profile.ward || '');
+    }
+  }, [profile]);
+
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: '/profile' }} replace />;
+
+  const myProjects = projects?.filter(p => p.created_by === user?.id) || [];
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: fullName, ward })
+      .eq('user_id', user.id);
+    if (error) toast.error('Failed to update profile');
+    else {
+      toast.success('Profile updated!');
+      await refreshProfile();
+    }
+    setSaving(false);
+  };
+
   const profileTabs: { id: ProfileTab; label: string; icon: any }[] = [
     { id: 'reports', label: 'My Reports', icon: FileText },
     { id: 'following', label: 'Following', icon: Heart },
-    { id: 'evidence', label: 'My Evidence', icon: Camera },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  const roleBadgeColors: Record<string, string> = {
-    'Citizen': 'bg-muted text-muted-foreground',
-    'Verified Reporter': 'bg-accent/10 text-accent',
-    'NGO Partner': 'bg-info/10 text-info',
-    'Government Official': 'bg-warning/10 text-warning',
-  };
+  const initials = profile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Profile header */}
         <div className="bg-card rounded-xl border p-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center text-3xl">{currentUser.avatar}</div>
+            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center text-2xl font-bold text-accent">
+              {initials}
+            </div>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">{currentUser.name}</h1>
-              <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+              <h1 className="text-xl font-bold">{profile?.full_name || 'User'}</h1>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
               <div className="flex items-center gap-2 mt-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${roleBadgeColors[currentUser.role]}`}>{currentUser.role}</span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground"><Award className="w-3 h-3 text-accent" /> Reputation: {currentUser.reputation}</span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-muted text-muted-foreground capitalize">{profile?.role}</span>
+                {profile?.ward && <span className="text-xs text-muted-foreground">{profile.ward}</span>}
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t text-center">
-            <div><p className="text-lg font-bold">{currentUser.reportsCount}</p><p className="text-xs text-muted-foreground">Reports</p></div>
-            <div><p className="text-lg font-bold">{currentUser.followingCount}</p><p className="text-xs text-muted-foreground">Following</p></div>
-            <div><p className="text-lg font-bold">{currentUser.reputation}</p><p className="text-xs text-muted-foreground">Rep Score</p></div>
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t text-center">
+            <div><p className="text-lg font-bold">{myProjects.length}</p><p className="text-xs text-muted-foreground">Reports</p></div>
+            <div><p className="text-lg font-bold">{profile?.ward || '—'}</p><p className="text-xs text-muted-foreground">Ward</p></div>
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-1 bg-muted p-1 rounded-lg overflow-x-auto">
           {profileTabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -65,62 +87,37 @@ export default function ProfilePage() {
 
         {tab === 'reports' && (
           <div className="space-y-3">
-            {userReports.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No reports yet.</p>}
-            {userReports.map(r => (
-              <div key={r.id} className="bg-card rounded-lg border p-4">
-                <h3 className="text-sm font-bold">{r.title}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{r.location} • {r.date}</p>
+            {myProjects.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No reports yet.</p>}
+            {myProjects.map(p => (
+              <div key={p.id} className="bg-card rounded-lg border p-4">
+                <h3 className="text-sm font-bold">{p.title}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{p.location_text} • {new Date(p.created_at).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
         )}
 
         {tab === 'following' && (
-          <div className="text-center py-8 text-sm text-muted-foreground">You're following {currentUser.followingCount} projects.</div>
-        )}
-
-        {tab === 'evidence' && (
-          <div className="space-y-4">
-            <Button className="bg-accent text-accent-foreground gap-1.5" onClick={() => setShowCamera(true)}>
-              <Camera className="w-4 h-4" /> Capture Evidence
-            </Button>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {evidenceList.map(ev => (
-                <div key={ev.id} className="bg-card rounded-lg border overflow-hidden">
-                  <div className="h-28 bg-muted flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-muted-foreground/30" />
-                  </div>
-                  <div className="p-2 space-y-1">
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <MapPin className="w-3 h-3" /> {ev.locationLabel}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">{new Date(ev.timestamp).toLocaleDateString()}</p>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2"><LinkIcon className="w-3 h-3 mr-1" /> Attach</Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2"><Download className="w-3 h-3" /></Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 text-destructive"><Trash2 className="w-3 h-3" /></Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <div className="text-center py-8 text-sm text-muted-foreground">Following feature coming soon.</div>
         )}
 
         {tab === 'settings' && (
-          <div className="bg-card rounded-lg border p-6 text-sm text-muted-foreground text-center">Settings panel coming soon.</div>
+          <div className="bg-card rounded-lg border p-6 space-y-4">
+            <h3 className="font-bold">Edit Profile</h3>
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Full Name</label>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full h-9 border rounded-md px-3 text-sm bg-background" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Ward</label>
+              <input value={ward} onChange={e => setWard(e.target.value)} className="w-full h-9 border rounded-md px-3 text-sm bg-background" placeholder="e.g. Ward 12 - Shivajinagar" />
+            </div>
+            <Button onClick={handleSave} disabled={saving} className="gap-2">
+              <Save className="w-4 h-4" /> {saving ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </div>
         )}
       </div>
-
-      {showCamera && (
-        <CameraCapture
-          onCapture={(img, gps) => {
-            setEvidenceList(prev => [{ id: `e${Date.now()}`, imageUrl: img, lat: gps.lat, lng: gps.lng, locationLabel: gps.locationLabel, timestamp: gps.timestamp }, ...prev]);
-            setShowCamera(false);
-          }}
-          onClose={() => setShowCamera(false)}
-        />
-      )}
     </AppLayout>
   );
 }
